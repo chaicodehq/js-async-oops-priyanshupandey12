@@ -76,30 +76,114 @@
  */
 export class DabbaService {
   constructor(serviceName, area) {
-    // Your code here
+        this.serviceName = serviceName
+        this.area = area
+         this.customers = [] 
+        this._nextId = 1 
   }
 
   addCustomer(name, address, mealPreference) {
     // Your code here
+    const Allowedmeal=["veg", "nonveg", "jain"]
+    if(!Allowedmeal.includes(mealPreference)) {
+      return null
+    }
+    const isCustomerExist=this.customers.some(customer=>customer.name===name)
+     if(isCustomerExist) {
+      return null
+     }
+     const customer= { 
+      id: this._nextId++, 
+      name, address, 
+      mealPreference,
+     active: true,
+      delivered: false 
+    }
+    this.customers.push(customer)
+    return customer
+
   }
 
   removeCustomer(name) {
-    // Your code here
+  const customer = this.customers.find(c => c.name === name)
+
+  if (!customer) return false
+
+  if (customer.active === false) return false
+
+  customer.active = false
+
+  return true
   }
 
   createDeliveryBatch() {
-    // Your code here
+    const activeCustomers = this.customers.filter(c => c.active === true)
+  if (activeCustomers.length === 0) return []
+    const batchTime = new Date().toISOString()
+    const deliveries = activeCustomers.map(c => {
+    c.delivered = false
+
+    return {
+      customerId: c.id,
+      name: c.name,
+      address: c.address,
+      mealPreference: c.mealPreference,
+      batchTime: batchTime
+    }
+  })
+
+  return deliveries
+      
+    
   }
 
   markDelivered(customerId) {
     // Your code here
+ const customer = this.customers.find(c => c.id === customerId)
+
+  if (!customer || customer.active === false) return false
+
+  customer.delivered = true
+
+  return true
   }
 
   getDailyReport() {
-    // Your code here
+   const activeCustomers = this.customers.filter(c => c.active === true)
+
+  const delivered = activeCustomers.filter(c => c.delivered === true).length
+  const pending = activeCustomers.filter(c => c.delivered === false).length
+
+  const veg = activeCustomers.filter(c => c.mealPreference === "veg").length
+  const nonveg = activeCustomers.filter(c => c.mealPreference === "nonveg").length
+  const jain = activeCustomers.filter(c => c.mealPreference === "jain").length
+
+  
+      return {
+    totalCustomers: activeCustomers.length,
+    delivered: delivered,
+    pending: pending,
+    mealBreakdown: {
+      veg: veg,
+      nonveg: nonveg,
+      jain: jain
+    }
   }
+      
+    }
+   
+  
 
   getCustomer(name) {
     // Your code here
+    /*
+ *     - Returns customer object by name (including inactive)
+ *     - Returns null if not found
+    */
+     const customer = this.customers.find(c => c.name === name)
+
+  if (!customer) return null
+
+  return customer
   }
 }
