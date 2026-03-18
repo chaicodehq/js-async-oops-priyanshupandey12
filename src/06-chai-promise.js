@@ -73,17 +73,101 @@
  *   // ]
  */
 export function orderChai(type, quantity) {
+
+
   // Your code here
+const validType = ["cutting", "special", "ginger", "masala"];
+
+  const prices = {
+    cutting: 10,
+    special: 20,
+    ginger: 15,
+    masala: 25
+  };
+
+  return new Promise((resolve, reject) => {
+
+    if (quantity <= 0 || isNaN(quantity)) {
+      return reject(new Error("Kitni chai chahiye bhai?"));
+    }
+
+    if (!validType.includes(type)) {
+      return reject(new Error("Yeh chai available nahi hai!"));
+    }
+
+    const price = prices[type];
+
+    setTimeout(() => {
+      resolve({
+        type,
+        quantity,
+        total: price * quantity
+      });
+    }, 100);
+  });
 }
 
 export function checkIngredients(ingredient) {
   // Your code here
+
+
+
+  const validIngredients=["tea", "milk", "sugar", "ginger", "cardamom"]
+    return new Promise((resolve,reject)=>{
+         if(!validIngredients.includes(ingredient)) {
+          return reject(new Error(`${ingredient} khatam ho gaya!`))
+         }
+         resolve({ ingredient, available: true })
+    })
 }
 
 export function prepareChaiWithTimeout(type, timeoutMs) {
   // Your code here
+
+    const chaiPromise = orderChai(type, 1);
+
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("Bahut der ho gayi, chai nahi bani!"));
+    }, timeoutMs);
+  });
+
+
+  return Promise.race([chaiPromise, timeoutPromise]);
+
+
 }
 
 export function processChaiQueue(orders) {
   // Your code here
+/*
+ * Function: processChaiQueue(orders)
+ *   - Takes array of { type, quantity } objects
+ *   - Processes each order using orderChai
+ *   - Returns Promise that resolves with array of results
+ *   - Each result: { status: "fulfilled", value: orderResult }
+ *     or { status: "rejected", reason: errorMessage }
+ *   - Like Promise.allSettled behavior — ALL orders are attempted,
+ *     failures don't stop other orders
+ *   - Agar orders array empty hai, resolve with empty array
+*/
+  if (!Array.isArray(orders) || orders.length === 0) {
+    return Promise.resolve([]);
+  }
+
+  const promises = orders.map(({ type, quantity }) => {
+    return orderChai(type, quantity)
+      .then(value => ({
+        status: "fulfilled",
+        value
+      }))
+      .catch(err => ({
+        status: "rejected",
+        reason: err.message || err
+      }));
+  });
+
+  return Promise.all(promises);
+
+
 }
